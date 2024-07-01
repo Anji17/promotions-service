@@ -24,7 +24,17 @@ server:
   
 csv:
   file:
-    path: promotions.csv
+    path: src/main/resources/promotions.csv
     
 chunk:
   size: 5000
+
+---
+spring:
+    config:
+        activate:
+            on-profile: docker
+
+csv:
+  file:
+    path: promotions.csv

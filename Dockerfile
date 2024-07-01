@@ -5,7 +5,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
 FROM openjdk:17-jdk-slim
 
@@ -13,7 +13,7 @@ WORKDIR /app
 
 COPY --from=build /app/target/VerveAssignment-0.0.1-SNAPSHOT.jar ./app.jar
 COPY --from=build /app/src/main/resources/promotions.csv ./
-
+ENV SPRING_PROFILES_ACTIVE=docker
 EXPOSE 1321
 
 CMD ["java", "-jar", "app.jar"]
