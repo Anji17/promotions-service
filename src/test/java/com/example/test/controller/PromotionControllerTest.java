@@ -1,50 +1,42 @@
 package com.example.test.controller;
 
-import java.time.LocalDateTime;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.http.HttpStatus;
 
 import com.verve.test.controller.PromotionController;
 import com.verve.test.dto.PromotionResponse;
 import com.verve.test.service.PromotionService;
 
-//@ExtendWith(MockitoExtension.class)
-public class PromotionControllerTest {
+@ExtendWith(MockitoExtension.class)
+class PromotionControllerTest {
 
     @Mock
-    private PromotionService yourService;
+    private PromotionService promotionService;
 
     @InjectMocks
-    private PromotionController yourController;
+    private PromotionController promotionController;
 
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(yourController).build();
+    @Test
+    void testGetPromotionFound() throws Exception {
+        PromotionResponse promotionResponse = new PromotionResponse("172FFC14-D229-4C93-B06B-F48B8C095512", 9.68, "2022-06-04 06:01:20");
+        when(promotionService.getPromotionById(anyString())).thenReturn(Optional.of(promotionResponse));
+        assertEquals(HttpStatus.OK, promotionController.getPromotion("172FFC14-D229-4C93-B06B-F48B8C095512").getStatusCode());
+        assertEquals(promotionResponse, promotionController.getPromotion("172FFC14-D229-4C93-B06B-F48B8C095512").getBody());
     }
 
     @Test
-    public void testGetPromotionById() throws Exception {
-        String id = "172FFC14-D229-4C93-B06B-F48B8C095512";
-        PromotionResponse mockPromotion = new PromotionResponse(id, 9.68, "2022-06-04T06:01:20");
-
-//        Mockito.when(yourService.getPromotionById(id)).thenReturn(mockPromotion);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/promotions/{id}", id))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(id))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.price").value(9.68))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.expiration_date").value("2022-06-04T06:01:20"));
+    void testGetPromotionNotFound() throws Exception {
+        when(promotionService.getPromotionById(anyString())).thenReturn(Optional.empty());
+        assertEquals(HttpStatus.NOT_FOUND, promotionController.getPromotion("172FFC14-D229-4C93-B06B").getStatusCode());
     }
 }

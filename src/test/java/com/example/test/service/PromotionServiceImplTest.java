@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,13 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
 
 import com.verve.test.dto.PromotionResponse;
 import com.verve.test.entity.Promotion;
@@ -49,15 +42,6 @@ class PromotionServiceImplTest {
 
     private static final DateTimeFormatter RESPONSE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    @BeforeEach
-    void setUp() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
-        // Mock jobLauncher.run() to return a dummy JobExecution with a completed status
-        JobExecution jobExecution = new JobExecution(new JobInstance(1L, "importPromotionJob"), new JobParameters());
-        jobExecution.setStatus(BatchStatus.COMPLETED);
-        when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(jobExecution);
-
-    }
-
     @Test
     void testGetPromotionById() {
         String testId = "TEST123";
@@ -75,7 +59,6 @@ class PromotionServiceImplTest {
 
     @Test
     void testGetPromotionById_NotFound() {
-        // Mock promotionRepository.findById() to return an empty Optional
         String testId = "NOTFOUND";
 
         when(promotionRepository.findById(testId.toUpperCase())).thenReturn(Optional.empty());
@@ -86,7 +69,9 @@ class PromotionServiceImplTest {
 
     @Test
     void testLoadAndSaveData() throws Exception {
-        // Test the scheduled batch job execution
+    	JobExecution je = new JobExecution(1L);
+    	je.setStatus(BatchStatus.COMPLETED);
+    	when(jobLauncher.run(any(), any())).thenReturn(je);
         BatchStatus batchStatus = promotionService.loadAndSaveData();
         assertEquals(BatchStatus.COMPLETED, batchStatus);
     }
